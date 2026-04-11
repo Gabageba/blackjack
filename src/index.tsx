@@ -1,10 +1,11 @@
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import '@styles/index.scss';
+import { GlobalStyles } from '@styles/GlobalStyles';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
+    <GlobalStyles />
     <Suspense fallback="...is loading">
       <App />
     </Suspense>

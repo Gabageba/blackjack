@@ -6,7 +6,7 @@
     "allowJs": false,
     "module": "ESNext",
     "skipLibCheck": true,
-    "esModuleInterop": false,
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
 
@@ -17,15 +17,15 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "src",
+    "jsxImportSource": "@emotion/react",
     "paths": {
-      "@components/*": ["components/*"],
-      "@assets/*": ["assets/*"],
-      "@customTypes/*": ["types/*"],
-      "@styles/*": ["styles/*"],
-      "@pages/*": ["pages/*"],
-      "@svg/*": ["svg/*"],
-      "@utils/*": ["utils/*"],
+      "@components/*": ["./src/components/*"],
+      "@assets/*": ["./src/assets/*"],
+      "@customTypes/*": ["./src/types/*"],
+      "@styles/*": ["./src/styles/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@svg/*": ["./src/svg/*"],
+      "@utils/*": ["./src/utils/*"]
     },
 
     /* Linting */

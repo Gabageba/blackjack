@@ -14,7 +14,10 @@ export default defineConfig({
     hmr: true,
   },
   plugins: [
-    react(),
+    react({
+      jsxImportSource: '@emotion/react',
+      plugins: [['@swc/plugin-emotion', {}]],
+    }),
     legacy({
       targets: ['defaults', 'not IE 11'],
     }),

@@ -4,7 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import HttpBackend, { type HttpBackendOptions } from 'i18next-http-backend';
 import { DateTime } from 'luxon';
 
-i18n
+void i18n
   .use(HttpBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -20,6 +20,9 @@ i18n
   });
 
 i18n.services?.formatter?.add('DATE_HUGE', (value, lng = 'ru') => {
+  if (!(value instanceof Date)) {
+    return '';
+  }
   return DateTime.fromJSDate(value).setLocale(lng).toLocaleString(DateTime.DATE_HUGE);
 });
 

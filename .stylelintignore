@@ -1,7 +1,5 @@
-*.tsx
-*.jsx
-*.ts
-*.js
+node_modules/
+build/
+dist/
 *.md
 *.svg
-/node_modules
