@@ -117,9 +117,11 @@ function Bet({ bet, setBet, balance, onConfirm }: BetProps) {
           - 100
         </Button>
       </div>
-      <Button type="primary" disabled={!canConfirm || bet === 0} onClick={handleConfirm}>
-        {t('game.betConfirm')}
-      </Button>
+      <div css={styles().confirm}>
+        <Button type="primary" disabled={!canConfirm || bet === 0} onClick={handleConfirm}>
+          {t('game.betConfirm')}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -2,6 +2,12 @@ import { css } from '@emotion/react';
 
 const styles = () => ({
   self: css`
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
     background: radial-gradient(
       ellipse 135vw 120vh at 50% 40%,
       #1a5f3a 0%,

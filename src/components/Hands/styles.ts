@@ -1,11 +1,30 @@
 import { css } from '@emotion/react';
 
+import { HAND_CARD_GAP_PX } from '../../utils/handCardLayout';
+
 const styles = () => ({
+  /** Общая ширина для расчёта масштаба карт у дилера и игрока */
+  handsLayout: css`
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    @media (width <= 520px) {
+      gap: 14px;
+    }
+  `,
   row: css`
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   `,
   label: css`
     font-size: 1.05rem;
@@ -31,10 +50,17 @@ const styles = () => ({
   `,
   cards: css`
     display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+    flex-flow: row nowrap;
+    gap: ${HAND_CARD_GAP_PX}px;
     justify-content: center;
-    min-height: 176px;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-height: calc(var(--card-width, 118px) * 7 / 5);
+  `,
+  cardsEmpty: css`
+    min-height: 0;
   `,
   overlay: css`
     position: fixed;

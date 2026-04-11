@@ -26,7 +26,7 @@ const Game = () => {
 
   return (
     <div css={styles().self}>
-      <Header balance={balance} />
+      <Header balance={balance} setBalance={setBalance} />
       <Table balance={balance} setBalance={setBalance} />
     </div>
   );

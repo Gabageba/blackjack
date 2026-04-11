@@ -17,9 +17,22 @@ const styles = () => ({
     text-transform: uppercase;
     opacity: 0.92;
   `,
-  balance: css`
+  balanceButton: css`
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
     font-size: 0.95rem;
+    font-weight: 600;
     opacity: 0.95;
+    cursor: pointer;
+    text-align: inherit;
+
+    &:hover {
+      opacity: 1;
+    }
   `,
   titleContainer: css`
     display: flex;

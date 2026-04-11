@@ -1,12 +1,15 @@
 import {
   type Dispatch,
+  type ReactNode,
   type SetStateAction,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { css } from '@emotion/react';
 import { type Card as CardType } from '../../types/card';
 import styles from './styles';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +30,7 @@ import {
   HOLE_REVEAL_MODAL_DELAY_MS,
   INITIAL_DEAL_FINISH_MS,
 } from '../../utils/cardMotion';
+import { cardWidthForSingleRow } from '../../utils/handCardLayout';
 
 type IProps = {
   balance: number;
@@ -41,6 +45,31 @@ type IProps = {
 const draw = (deck: CardType[], n: number): { drawn: CardType[]; rest: CardType[] } => {
   return { drawn: deck.slice(0, n), rest: deck.slice(n) };
 };
+
+function HandCardsRow({
+  cardWidth,
+  isEmpty,
+  children,
+}: {
+  cardWidth: number;
+  isEmpty: boolean;
+  children: ReactNode;
+}) {
+  const s = styles();
+  return (
+    <div
+      css={[
+        s.cards,
+        isEmpty && s.cardsEmpty,
+        css`
+          --card-width: ${cardWidth}px;
+        `,
+      ]}
+    >
+      {children}
+    </div>
+  );
+}
 
 const drawFour = (
   deck: CardType[],
@@ -343,41 +372,63 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
   const showWagerDuringPlay =
     displayedWager > 0 && (phase === Phase.DEAL_READY || phase === Phase.PLAY);
 
+  const handsLayoutRef = useRef<HTMLDivElement>(null);
+  const [sharedCardWidth, setSharedCardWidth] = useState(118);
+
+  useLayoutEffect(() => {
+    const el = handsLayoutRef.current;
+    if (!el) {
+      return;
+    }
+    const measure = () => {
+      const n = Math.max(dealer.length, player.length, 1);
+      setSharedCardWidth(cardWidthForSingleRow(el.clientWidth, n));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [dealer.length, player.length]);
+
+  const s = styles();
+
   return (
     <>
-      <p css={styles().message}>{displayMessage}</p>
+      <p css={s.message}>{displayMessage}</p>
       {showWagerDuringPlay && (
-        <p css={styles().wagerLine}>{t('game.currentWager', { value: displayedWager })}</p>
+        <p css={s.wagerLine}>{t('game.currentWager', { value: displayedWager })}</p>
       )}
 
-      <div css={styles().row}>
-        <span css={styles().label}>
-          {dealer.length > 0
-            ? t('game.dealerScore', { score: dealerScoreVisible })
-            : t('game.dealer')}
-        </span>
-        <div css={styles().cards}>
-          {dealer.map((c, i) => (
-            <Card
-              key={`d-${i}-${c.suit}-${c.rank}`}
-              card={c}
-              faceDown={i === 1 ? holeHidden : undefined}
-              dealMotion={true}
-            />
-          ))}
+      <div ref={handsLayoutRef} css={s.handsLayout}>
+        <div css={s.row}>
+          <span css={s.label}>
+            {dealer.length > 0
+              ? t('game.dealerScore', { score: dealerScoreVisible })
+              : t('game.dealer')}
+          </span>
+          <HandCardsRow cardWidth={sharedCardWidth} isEmpty={dealer.length === 0}>
+            {dealer.map((c, i) => (
+              <Card
+                key={`d-${i}-${c.suit}-${c.rank}`}
+                card={c}
+                faceDown={i === 1 ? holeHidden : undefined}
+                dealMotion={true}
+              />
+            ))}
+          </HandCardsRow>
         </div>
-      </div>
 
-      <div css={styles().row}>
-        <span css={styles().label}>
-          {player.length > 0
-            ? t('game.playerScore', { score: handValue(player) })
-            : t('game.player')}
-        </span>
-        <div css={styles().cards}>
-          {player.map((c, i) => (
-            <Card key={`p-${i}-${c.suit}-${c.rank}`} card={c} dealMotion={true} />
-          ))}
+        <div css={s.row}>
+          <span css={s.label}>
+            {player.length > 0
+              ? t('game.playerScore', { score: handValue(player) })
+              : t('game.player')}
+          </span>
+          <HandCardsRow cardWidth={sharedCardWidth} isEmpty={player.length === 0}>
+            {player.map((c, i) => (
+              <Card key={`p-${i}-${c.suit}-${c.rank}`} card={c} dealMotion={true} />
+            ))}
+          </HandCardsRow>
         </div>
       </div>
 
@@ -386,23 +437,18 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
       )}
 
       {phase === Phase.OVER && showRoundOverModal && (
-        <div
-          css={styles().overlay}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="round-over-title"
-        >
-          <div css={styles().modal}>
-            <p id="round-over-title" css={styles().modalTitle}>
+        <div css={s.overlay} role="dialog" aria-modal="true" aria-labelledby="round-over-title">
+          <div css={s.modal}>
+            <p id="round-over-title" css={s.modalTitle}>
               {t('game.roundOver')}
             </p>
-            <p css={styles().modalBody}>{message}</p>
+            <p css={s.modalBody}>{message}</p>
             {netChange !== null && (
               <p
                 css={[
-                  styles().modalNet,
-                  netChange < 0 && styles().modalNetLoss,
-                  netChange === 0 && styles().modalNetEven,
+                  s.modalNet,
+                  netChange < 0 && s.modalNetLoss,
+                  netChange === 0 && s.modalNetEven,
                 ]}
               >
                 {netChange > 0
@@ -412,7 +458,7 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
                     : t('game.roundEven')}
               </p>
             )}
-            <div css={styles().modalActions}>
+            <div css={s.modalActions}>
               <Button type="primary" onClick={endSameBetAgain}>
                 {t('game.sameBetAgain')}
               </Button>

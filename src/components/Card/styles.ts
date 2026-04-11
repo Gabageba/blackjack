@@ -30,6 +30,7 @@ const toastEnter = keyframes`
 const styles = () => ({
   tiltRoot: css`
     display: inline-flex;
+    flex: 0 0 auto;
     perspective: 520px;
     transform-style: preserve-3d;
   `,
@@ -43,8 +44,10 @@ const styles = () => ({
   `,
   self: css`
     display: block;
-    width: 118px;
-    height: auto;
+    width: var(--card-width, 118px);
+    aspect-ratio: 5 / 7;
+    object-fit: contain;
+    object-position: center;
     border-radius: 6px;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
@@ -53,7 +56,7 @@ const styles = () => ({
     animation: ${cardDealPop} ${dealDuration} cubic-bezier(0.22, 1, 0.36, 1) both;
   `,
   flipTrack: css`
-    width: 118px;
+    width: var(--card-width, 118px);
     perspective: 760px;
     position: relative;
   `,

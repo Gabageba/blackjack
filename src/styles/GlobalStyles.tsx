@@ -52,7 +52,6 @@ const globalStyles = css`
     font-size: 16px;
     text-size-adjust: 100%;
     font-family: Montserrat, sans-serif;
-    overflow: hidden;
   }
 
   #root {

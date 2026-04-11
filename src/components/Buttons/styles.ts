@@ -6,7 +6,10 @@ const styles = () => ({
     flex-flow: column wrap;
     gap: 10px;
     justify-content: center;
-    width: 400px;
+    width: 100%;
+    max-width: min(400px, 100%);
+    box-sizing: border-box;
+    padding: 0 4px;
   `,
   actions: css`
     display: flex;
