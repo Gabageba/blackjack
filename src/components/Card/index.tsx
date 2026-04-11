@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type Card as CardType } from '../../types/card';
 import { CARD_BACK_URL, cardImageUrl } from '../../utils/cardImgUrl';
+import { cardBlackjackTooltip } from '../../utils/cardTooltip';
 import styles from './styles';
 
 const MAX_ROT = 14;
@@ -11,14 +13,20 @@ const LERP = 0.22;
 
 type IProps = {
   card?: CardType;
-  isEmpty?: boolean;
+  /** Вторая карта дилера: `true` — рубашка, `false` — открыта (переворот 3D). Без пропа — обычная карта. */
+  faceDown?: boolean;
   /** Вход с «полки»: раздача или новая карта игроку */
   dealMotion?: boolean;
 };
 
-function Card({ card, isEmpty, dealMotion }: IProps) {
+function Card({ card, faceDown, dealMotion }: IProps) {
   const { t } = useTranslation();
+  const tooltipId = useId();
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const flipMode = card !== undefined && faceDown !== undefined;
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -109,46 +117,122 @@ function Card({ card, isEmpty, dealMotion }: IProps) {
     [reduceMotion, scheduleTick],
   );
 
-  const onPointerEnter = useCallback(() => {
-    if (reduceMotion) {
+  const clearTooltipTimer = useCallback(() => {
+    if (tooltipTimerRef.current !== undefined) {
+      window.clearTimeout(tooltipTimerRef.current);
+      tooltipTimerRef.current = undefined;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => clearTooltipTimer();
+  }, [clearTooltipTimer]);
+
+  const tooltipText = useMemo(
+    () => (card && faceDown !== true ? cardBlackjackTooltip(card, t) : undefined),
+    [card, faceDown, t],
+  );
+
+  const onRootPointerEnter = useCallback(() => {
+    if (!reduceMotion) {
+      hoveringRef.current = true;
+      scheduleTick();
+    }
+    if (!tooltipText) {
       return;
     }
-    hoveringRef.current = true;
-    scheduleTick();
-  }, [reduceMotion, scheduleTick]);
+    clearTooltipTimer();
+    tooltipTimerRef.current = window.setTimeout(() => {
+      tooltipTimerRef.current = undefined;
+      setTooltipOpen(true);
+    }, 140);
+  }, [clearTooltipTimer, reduceMotion, scheduleTick, tooltipText]);
 
-  const onPointerLeave = useCallback(() => {
-    hoveringRef.current = false;
-    targetRef.current = { rx: 0, ry: 0 };
-    scheduleTick();
-  }, [scheduleTick]);
+  const onRootPointerLeave = useCallback(() => {
+    if (!reduceMotion) {
+      hoveringRef.current = false;
+      targetRef.current = { rx: 0, ry: 0 };
+      scheduleTick();
+    }
+    clearTooltipTimer();
+    setTooltipOpen(false);
+  }, [clearTooltipTimer, reduceMotion, scheduleTick]);
 
-  const src = !isEmpty && card ? cardImageUrl(card) : CARD_BACK_URL;
-  const alt = !isEmpty && card ? card.rank + ' of ' + card.suit : t('game.hiddenCard');
+  const s = styles();
+  const imgCss = [s.self, dealMotion && !flipMode && s.dealMotion];
+  const holeRevealed = flipMode && faceDown === false;
+  const backAlt = t('game.hiddenCard');
+  const frontAlt = card ? `${card.rank} of ${card.suit}` : '';
 
-  const imgCss = [styles().self, dealMotion && styles().dealMotion];
+  const tooltipPortal =
+    typeof document !== 'undefined' &&
+    tooltipOpen &&
+    tooltipText &&
+    createPortal(
+      <div id={tooltipId} css={s.tooltip} role="tooltip">
+        {tooltipText}
+      </div>,
+      document.body,
+    );
 
-  if (reduceMotion) {
+  if (flipMode && card) {
     return (
-      <div css={styles().tiltRoot}>
-        <div css={styles().tiltInner}>
-          <img css={imgCss} src={src} alt={alt} />
+      <div
+        ref={rootRef}
+        css={s.tiltRoot}
+        onPointerEnter={onRootPointerEnter}
+        onPointerMove={reduceMotion ? undefined : onPointerMove}
+        onPointerLeave={onRootPointerLeave}
+      >
+        <div ref={innerRef} css={s.tiltInner}>
+          <div css={[s.flipTrack, dealMotion && s.dealMotion]}>
+            <div
+              css={[
+                s.flipPivot,
+                holeRevealed && s.flipPivotRevealed,
+                reduceMotion && s.flipPivotReduced,
+              ]}
+            >
+              <div css={s.flipFace}>
+                <img src={CARD_BACK_URL} alt={backAlt} draggable={false} />
+              </div>
+              <div css={[s.flipFace, s.flipFaceFront]}>
+                <img
+                  src={cardImageUrl(card)}
+                  alt={frontAlt}
+                  draggable={false}
+                  aria-describedby={tooltipOpen && tooltipText ? tooltipId : undefined}
+                />
+              </div>
+            </div>
+          </div>
         </div>
+        {tooltipPortal}
       </div>
     );
   }
 
+  const src = card ? cardImageUrl(card) : CARD_BACK_URL;
+  const alt = card ? `${card.rank} of ${card.suit}` : t('game.hiddenCard');
+
   return (
     <div
       ref={rootRef}
-      css={styles().tiltRoot}
-      onPointerEnter={onPointerEnter}
-      onPointerMove={onPointerMove}
-      onPointerLeave={onPointerLeave}
+      css={s.tiltRoot}
+      onPointerEnter={onRootPointerEnter}
+      onPointerMove={reduceMotion ? undefined : onPointerMove}
+      onPointerLeave={onRootPointerLeave}
     >
-      <div ref={innerRef} css={styles().tiltInner}>
-        <img css={imgCss} src={src} alt={alt} />
+      <div ref={innerRef} css={s.tiltInner}>
+        <img
+          css={imgCss}
+          src={src}
+          alt={alt}
+          draggable={false}
+          aria-describedby={tooltipOpen && tooltipText ? tooltipId : undefined}
+        />
       </div>
+      {tooltipPortal}
     </div>
   );
 }

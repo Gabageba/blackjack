@@ -4,6 +4,7 @@ import Button from '../Button/index.tsx.tsx';
 import { Phase } from '../../types/phase.ts';
 import { type Card } from '../../types/card.ts';
 import isBust from '../../utils/isBust.ts';
+import handValue from '../../utils/handValue.ts';
 
 type IProps = {
   player: Card[];
@@ -16,7 +17,8 @@ type IProps = {
 function Buttons({ player, phase, newRound, hit, stand }: IProps) {
   const { t } = useTranslation();
 
-  const canHit = phase === Phase.PLAY && !isBust(player);
+  const atTwentyOne = handValue(player) === 21;
+  const canHit = phase === Phase.PLAY && !isBust(player) && !atTwentyOne;
   const canStand = phase === Phase.PLAY && !isBust(player);
 
   return (

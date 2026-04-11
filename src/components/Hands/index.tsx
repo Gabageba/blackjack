@@ -20,6 +20,13 @@ import Button from '../Button/index.tsx.tsx';
 import isBust from '../../utils/isBust';
 import { shuffle } from '../../utils/shuffle';
 import { createDeck } from '../../utils/createDeck';
+import {
+  CARD_DEAL_ANIM_MS,
+  CARD_FLIP_MS,
+  DEAL_STAGGER_MS,
+  HOLE_REVEAL_MODAL_DELAY_MS,
+  INITIAL_DEAL_FINISH_MS,
+} from '../../utils/cardMotion';
 
 type IProps = {
   balance: number;
@@ -34,9 +41,6 @@ type IProps = {
 const draw = (deck: CardType[], n: number): { drawn: CardType[]; rest: CardType[] } => {
   return { drawn: deck.slice(0, n), rest: deck.slice(n) };
 };
-
-/** Пауза между картами при начальной раздаче (мс). */
-const DEAL_STAGGER_MS = 200;
 
 const drawFour = (
   deck: CardType[],
@@ -64,6 +68,8 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
   const [displayedWager, setDisplayedWager] = useState(0);
   /** Изменение баланса за раунд относительно состояния после списания ставки. */
   const [netChange, setNetChange] = useState<number | null>(null);
+  /** Модалка итога раунда — только после анимаций карт. */
+  const [showRoundOverModal, setShowRoundOverModal] = useState(false);
 
   const settle = useCallback(
     (p: CardType[], d: CardType[], wager: number) => {
@@ -118,37 +124,6 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
     [t, setBalance],
   );
 
-  const dealerDisplay = useMemo(() => {
-    if (holeHidden && dealer.length >= 2) {
-      return dealer.slice(0, 1);
-    }
-    return dealer;
-  }, [dealer, holeHidden]);
-
-  const runDealer = useCallback(
-    (startDeck: CardType[], p: CardType[], startDealer: CardType[], wager: number) => {
-      let d = [...startDealer];
-      let rest = [...startDeck];
-      while (dealerShouldHit(d) && rest.length > 0) {
-        const { drawn, rest: r } = draw(rest, 1);
-        d = [...d, ...drawn];
-        rest = r;
-      }
-      setDealer(d);
-      setDeck(rest);
-      settle(p, d, wager);
-    },
-    [settle],
-  );
-
-  const stand = () => {
-    if (phase !== Phase.PLAY) return;
-    setHoleHidden(false);
-    const w = roundWager.current;
-    setPhase(Phase.OVER);
-    runDealer(deck, player, dealer, w);
-  };
-
   const clearDealTimeouts = useCallback(() => {
     for (const id of dealTimeoutsRef.current) {
       window.clearTimeout(id);
@@ -156,8 +131,70 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
     dealTimeoutsRef.current = [];
   }, []);
 
+  const scheduleDealTimeout = useCallback((fn: () => void, delayMs: number) => {
+    const id = window.setTimeout(fn, delayMs);
+    dealTimeoutsRef.current.push(id);
+  }, []);
+
+  /** Дилер добирает карты по одной; затем расчёт и показ модалки. */
+  const runDealerAnimated = useCallback(
+    (startDeck: CardType[], p: CardType[], startDealer: CardType[], wager: number) => {
+      clearDealTimeouts();
+      let simD = [...startDealer];
+      let simRest = [...startDeck];
+      const toDraw: CardType[] = [];
+      while (dealerShouldHit(simD) && simRest.length > 0) {
+        const { drawn, rest: r } = draw(simRest, 1);
+        simD = [...simD, ...drawn];
+        simRest = r;
+        toDraw.push(drawn[0]);
+      }
+
+      if (toDraw.length === 0) {
+        scheduleDealTimeout(() => {
+          settle(p, simD, wager);
+          setShowRoundOverModal(true);
+        }, CARD_FLIP_MS);
+        return;
+      }
+
+      let delay = CARD_FLIP_MS;
+      let accD = [...startDealer];
+      let accRest = [...startDeck];
+
+      for (let i = 0; i < toDraw.length; i++) {
+        const stepIndex = i;
+        scheduleDealTimeout(() => {
+          const { drawn, rest: r } = draw(accRest, 1);
+          accD = [...accD, ...drawn];
+          accRest = r;
+          setDealer(accD);
+          setDeck(accRest);
+          if (stepIndex === toDraw.length - 1) {
+            scheduleDealTimeout(() => {
+              settle(p, simD, wager);
+              setShowRoundOverModal(true);
+            }, CARD_DEAL_ANIM_MS);
+          }
+        }, delay);
+        delay += DEAL_STAGGER_MS;
+      }
+    },
+    [clearDealTimeouts, scheduleDealTimeout, settle],
+  );
+
+  const stand = () => {
+    if (phase !== Phase.PLAY) return;
+    setShowRoundOverModal(false);
+    setHoleHidden(false);
+    const w = roundWager.current;
+    setPhase(Phase.OVER);
+    runDealerAnimated(deck, player, dealer, w);
+  };
+
   const resetTable = () => {
     clearDealTimeouts();
+    setShowRoundOverModal(false);
     setPlayer([]);
     setDealer([]);
     setDeck([]);
@@ -185,9 +222,19 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
     const w = roundWager.current;
 
     if (isBust(p)) {
+      clearDealTimeouts();
+      setShowRoundOverModal(false);
       setHoleHidden(false);
       setPhase(Phase.OVER);
       settle(p, dealer, w);
+      scheduleDealTimeout(() => setShowRoundOverModal(true), HOLE_REVEAL_MODAL_DELAY_MS);
+      return;
+    }
+    if (handValue(p) === 21) {
+      setShowRoundOverModal(false);
+      setHoleHidden(false);
+      setPhase(Phase.OVER);
+      runDealerAnimated(rest, p, dealer, w);
     }
   };
 
@@ -228,25 +275,21 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
     setDealer([]);
 
     clearDealTimeouts();
+    setShowRoundOverModal(false);
 
-    const queue = (fn: () => void, delayMs: number) => {
-      const id = window.setTimeout(fn, delayMs);
-      dealTimeoutsRef.current.push(id);
-    };
-
-    queue(() => {
+    scheduleDealTimeout(() => {
       setPlayer([c0]);
     }, 0);
-    queue(() => {
+    scheduleDealTimeout(() => {
       setDealer([c1]);
     }, DEAL_STAGGER_MS);
-    queue(() => {
+    scheduleDealTimeout(() => {
       setPlayer([c0, c2]);
     }, DEAL_STAGGER_MS * 2);
-    queue(() => {
+    scheduleDealTimeout(() => {
       setDealer([c1, c3]);
     }, DEAL_STAGGER_MS * 3);
-    queue(() => {
+    scheduleDealTimeout(() => {
       const p = [c0, c2];
       const d = [c1, c3];
       const pBj = isBlackjack(p);
@@ -256,17 +299,19 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
         setHoleHidden(false);
         setPhase(Phase.OVER);
         settle(p, d, wager);
+        scheduleDealTimeout(() => setShowRoundOverModal(true), CARD_FLIP_MS);
         return;
       }
       setPhase(Phase.PLAY);
       setMessage(t('messages.yourTurn'));
-    }, DEAL_STAGGER_MS * 4);
+    }, INITIAL_DEAL_FINISH_MS);
   }, [
     balance,
     bet,
     clearDealTimeouts,
     dealer.length,
     player.length,
+    scheduleDealTimeout,
     setBalance,
     setPhase,
     settle,
@@ -312,10 +357,14 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
             : t('game.dealer')}
         </span>
         <div css={styles().cards}>
-          {dealerDisplay.map((c, i) => (
-            <Card key={`d-${i}-${c.suit}-${c.rank}`} card={c} dealMotion={true} />
+          {dealer.map((c, i) => (
+            <Card
+              key={`d-${i}-${c.suit}-${c.rank}`}
+              card={c}
+              faceDown={i === 1 ? holeHidden : undefined}
+              dealMotion={true}
+            />
           ))}
-          {holeHidden && dealer[1] && <Card isEmpty dealMotion={true} />}
         </div>
       </div>
 
@@ -336,7 +385,7 @@ function Hands({ balance, phase, setPhase, setBalance, bet, dealNonce, bumpDealN
         <Buttons player={player} phase={phase} newRound={newRound} hit={hit} stand={stand} />
       )}
 
-      {phase === Phase.OVER && (
+      {phase === Phase.OVER && showRoundOverModal && (
         <div
           css={styles().overlay}
           role="dialog"
