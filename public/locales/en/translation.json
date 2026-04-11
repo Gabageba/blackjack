@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "title": "Blackjack"
+  },
+  "game": {
+    "title": "Blackjack",
+    "balance": "Balance: {{value}}",
+    "bet": "Bet",
+    "dealer": "Dealer",
+    "player": "Player",
+    "dealerScore": "Dealer — {{score}}",
+    "playerScore": "Player — {{score}}",
+    "hiddenCard": "Hole card",
+    "deal": "Deal",
+    "hit": "Hit",
+    "stand": "Stand",
+    "newRound": "New round",
+    "betConfirm": "Play",
+    "roundOver": "Round over",
+    "changeBet": "Change bet",
+    "sameBetAgain": "Play again (same bet)",
+    "currentWager": "Wager: {{value}}",
+    "roundWon": "You won +{{value}}",
+    "roundLost": "You lost {{value}}",
+    "roundEven": "No change to balance",
+    "backToBet": "Back to bet",
+    "language": "Language",
+    "language_en": "English",
+    "language_ru": "Русский"
+  },
+  "messages": {
+    "placeBet": "Place your bet and press Deal.",
+    "pressDeal": "Press Deal to start the hand.",
+    "insufficientChips": "Not enough chips for this bet.",
+    "yourTurn": "Your turn — hit or stand.",
+    "bothBlackjackPush": "Both blackjack — push, bet returned.",
+    "playerBlackjack": "Blackjack! Paid 3:2.",
+    "dealerBlackjack": "Dealer has blackjack.",
+    "playerBust": "Bust — you lose.",
+    "dealerBust": "Dealer busts — you win.",
+    "playerWin": "You are closer to 21 — you win.",
+    "dealerWin": "Dealer is higher — you lose.",
+    "push": "Push — bet returned."
+  }
+}

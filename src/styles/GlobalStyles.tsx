@@ -11,6 +11,7 @@ const globalStyles = css`
     padding: 0;
     margin: 0;
     border: 0;
+    font-family: Montserrat, sans-serif;
 
     &::before,
     &::after {
@@ -45,15 +46,25 @@ const globalStyles = css`
   body {
     height: 100%;
     width: 100%;
+    min-height: 100%;
+    min-height: 100dvh;
     line-height: 1;
-    font-size: 14px;
+    font-size: 16px;
     text-size-adjust: 100%;
+    font-family: Montserrat, sans-serif;
+  }
+
+  #root {
+    min-height: 100%;
+    min-height: 100dvh;
+    width: 100%;
   }
 
   input,
   button,
   textarea {
     font-family: inherit;
+    font-size: 16px;
   }
 
   input::-ms-clear {

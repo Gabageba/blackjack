@@ -24,6 +24,7 @@ export default defineConfig({
     checker({
       typescript: true,
       eslint: {
+        useFlatConfig: true,
         lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
       },
     }),
@@ -31,12 +32,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@components': '/src/components',
-      '@assets': '/src/assets',
-      '@customTypes': '/src/types',
       '@styles': '/src/styles',
-      '@pages': '/src/pages',
-      '@svg': '/src/svg',
-      '@utils': '/src/utils',
     },
   },
 });

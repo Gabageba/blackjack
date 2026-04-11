@@ -20,12 +20,7 @@
     "jsxImportSource": "@emotion/react",
     "paths": {
       "@components/*": ["./src/components/*"],
-      "@assets/*": ["./src/assets/*"],
-      "@customTypes/*": ["./src/types/*"],
-      "@styles/*": ["./src/styles/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@svg/*": ["./src/svg/*"],
-      "@utils/*": ["./src/utils/*"]
+      "@styles/*": ["./src/styles/*"]
     },
 
     /* Linting */

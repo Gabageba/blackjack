@@ -1,29 +1,30 @@
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import HttpBackend, { type HttpBackendOptions } from 'i18next-http-backend';
-import { DateTime } from 'luxon';
+import HttpBackend from 'i18next-http-backend';
+import { initReactI18next } from 'react-i18next';
 
 void i18n
   .use(HttpBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
-  .init<HttpBackendOptions>({
+  .init({
+    fallbackLng: 'en',
+    supportedLngs: ['en', 'ru'],
+    defaultNS: 'translation',
+    ns: ['translation'],
     backend: {
-      loadPath: '/locales/{{lng}}/common.json',
+      loadPath: '/locales/{{lng}}/{{ns}}.json',
     },
-    debug: true,
-    fallbackLng: 'ru',
     interpolation: {
       escapeValue: false,
     },
+    detection: {
+      order: ['localStorage', 'navigator', 'htmlTag'],
+      caches: ['localStorage'],
+    },
+    react: {
+      useSuspense: true,
+    },
   });
-
-i18n.services?.formatter?.add('DATE_HUGE', (value, lng = 'ru') => {
-  if (!(value instanceof Date)) {
-    return '';
-  }
-  return DateTime.fromJSDate(value).setLocale(lng).toLocaleString(DateTime.DATE_HUGE);
-});
 
 export default i18n;
