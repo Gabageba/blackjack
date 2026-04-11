@@ -1,0 +1,24 @@
+{
+  "extends": ["stylelint-config-standard-scss", "stylelint-config-standard"],
+  "customSyntax": "postcss-scss",
+  "rules": {
+    "selector-class-pattern": "[a-z]+([A-Z][a-z0-9]+)*",
+    "scss/dollar-variable-pattern": "[a-z]+([A-Z][a-z0-9]+)*",
+    "no-eol-whitespace": true,
+    "indentation": 2,
+    "no-missing-end-of-source-newline": true,
+    "rule-empty-line-before": [
+      "always-multi-line",
+      {
+        "except": ["first-nested"],
+        "ignore": ["after-comment"]
+      }
+    ],
+    "declaration-block-trailing-semicolon": "always",
+    "max-empty-lines": 1,
+    "max-line-length": 80,
+    "import-notation": "string",
+    "declaration-property-value-no-unknown": null,
+    "at-rule-no-unknown": null
+  }
+}
