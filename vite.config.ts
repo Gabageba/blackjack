@@ -4,6 +4,8 @@ import legacy from '@vitejs/plugin-legacy';
 import checker from 'vite-plugin-checker';
 
 export default defineConfig({
+  // Must match GitHub repo name for Project Pages (https://<user>.github.io/<repo>/).
+  base: '/blackjack/',
   build: {
     target: 'ES2020',
     outDir: 'build',
