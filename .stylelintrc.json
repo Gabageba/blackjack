@@ -1,0 +1,11 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "customSyntax": "postcss-styled-syntax",
+  "rules": {
+    "selector-class-pattern": null,
+    "declaration-property-value-no-unknown": null,
+    "at-rule-no-unknown": null,
+    "import-notation": "string"
+  },
+  "ignoreFiles": ["**/node_modules/**", "build/**", "dist/**"]
+}

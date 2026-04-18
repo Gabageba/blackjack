@@ -1,0 +1,50 @@
+{
+  "meta": {
+    "title": "Очко"
+  },
+  "game": {
+    "title": "Очко",
+    "balance": "Баланс: {{value}}",
+    "bet": "Ставка",
+    "dealer": "Дилер",
+    "player": "Игрок",
+    "dealerScore": "Дилер — {{score}}",
+    "playerScore": "Игрок — {{score}}",
+    "hiddenCard": "Скрытая карта",
+    "cardTooltipAce": "1 очко или 11 очков",
+    "cardTooltipPoints_one": "{{count}} очко",
+    "cardTooltipPoints_few": "{{count}} очка",
+    "cardTooltipPoints_many": "{{count}} очков",
+    "cardTooltipPoints_other": "{{count}} очков",
+    "deal": "Раздать",
+    "hit": "Ещё",
+    "stand": "Хватит",
+    "newRound": "Новая раздача",
+    "betConfirm": "Играть",
+    "roundOver": "Раунд окончен",
+    "changeBet": "Изменить ставку",
+    "sameBetAgain": "Играть снова (та же ставка)",
+    "currentWager": "Ставка: {{value}}",
+    "roundWon": "Выигрыш: +{{value}}",
+    "roundLost": "Проигрыш: {{value}}",
+    "roundEven": "Изменение баланса: 0",
+    "backToBet": "К выбору ставки",
+    "language": "Язык",
+    "language_en": "English",
+    "language_ru": "Русский"
+  },
+  "messages": {
+    "placeBet": "Сделайте ставку и нажмите «Раздать».",
+    "pressDeal": "Нажмите «Раздать», чтобы начать раздачу.",
+    "insufficientChips": "Недостаточно фишек для этой ставки.",
+    "yourTurn": "Ваш ход: берите карту или остановитесь.",
+    "bothBlackjackPush": "Оба блэкджека — пуш, ставка возвращена.",
+    "playerBlackjack": "Блэкджек! Выплата 3:2.",
+    "dealerBlackjack": "У дилера блэкджек.",
+    "playerBust": "Перебор — вы проиграли.",
+    "dealerBust": "У дилера перебор — вы выиграли.",
+    "playerWin": "Вы ближе к 21 — выигрыш.",
+    "dealerWin": "У дилера больше — вы проиграли.",
+    "push": "Ничья — ставка возвращена."
+  }
+}
